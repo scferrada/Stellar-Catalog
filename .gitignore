@@ -22,10 +22,12 @@ var/
 .installed.cfg
 *.egg
 
+.idea/
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
-
+*.db
 # Unit test / coverage reports
 htmlcov/
 .tox/
