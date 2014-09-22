@@ -59,8 +59,7 @@ def radec_to_pixels(ra, dec):
 def addStar(hdu, m, ra, dec):
     count = mToCounts(m, 20, flux20)
     ver, hor = radec_to_pixels(ra, dec)
-
-    max_ver,max_hor = img.shape
+    max_ver, max_hor = img.shape
     if 0 <= ver < max_ver and 0 <= hor < max_hor:
         img[ver][hor] = count
 
@@ -74,3 +73,10 @@ def addStellarCatalog(hdu, catalog):
         ra = data[1]
         dec = data[2]
         addStar(hdu, magnitude, ra, dec)
+
+
+def addBackground(hdu, bg):
+    max_ver, max_hor = img.shape
+    for ver in range(max_ver):
+        for hor in range(max_hor):
+            img[ver][hor] += bg
