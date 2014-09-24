@@ -124,3 +124,4 @@ print "Listo, los objetos están marcados con un signo + !!\n"
 # Ahora graficamos
 from fits_lib import plot_image
 plot_image(img,log_scale=True,title=r'$\mathrm{\mathbb{Objetos\,del\,cat\acute{a}logo\,marcados\,con\,signo\,\plus}}$')
+

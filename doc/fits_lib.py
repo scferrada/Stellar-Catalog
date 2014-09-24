@@ -16,11 +16,11 @@ def plot_image(image,interpolation="nearest",log_scale=False,title=None):
        if min_value <= 0: image2 = image + np.abs(min_value) + 10.0
        else: image2 = image - min_value + 10.0
        plt.imshow(np.log(image2),interpolation=interpolation)
-       plt.set_cmap('pink')
+       plt.set_cmap('hot')
        plt.colorbar()
     else:
        plt.imshow(image,interpolation=interpolation)
-       plt.set_cmap('pink') 
+       plt.set_cmap('hot')
        plt.colorbar()
 
     if title != None:
