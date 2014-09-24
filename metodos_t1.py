@@ -1,5 +1,7 @@
 __author__ = 'Sebastian'
 
+import numpy as np
+
 def mToCounts(m, m0, F0):
     FF0 = (10 ** ((m0 - m)/2.5))
     counts = FF0 * (10 ** 8 * F0)
@@ -24,8 +26,9 @@ def addStar(hdu, m, ra, dec):
     ver, hor = radec_to_pixels(hdu[0].header, ra, dec)
     max_ver, max_hor = hdu[0].data.shape
     if 0 <= ver < max_ver and 0 <= hor < max_hor:
-	print ("added %d to %d, %d" %(count, ver, hor))
+        print ("added %d to %d, %d" % (count, ver, hor))
         hdu[0].data[ver][hor] = count
+        i = 1
 
 
 def addStellarCatalog(hdu, catalog):
@@ -35,8 +38,6 @@ def addStellarCatalog(hdu, catalog):
         magnitude = data[3]
         ra = data[1]
         dec = data[2]
-        #print ("m= %s, ra= %s, dec=%s" %(magnitude, ra, dec))
-	#print star
         addStar(hdu, float(magnitude), float(ra), float(dec))
 
 
@@ -48,4 +49,10 @@ def addBackground(hdu, bg):
             img[ver][hor] += bg
 
 def convolvePSF(hdu, sigma_psf):
-    psf = 0
+    import scipy.ndimage as ndimage
+    return ndimage.gaussian_filter(hdu[0].data, sigma = sigma_psf, order = 0)
+
+def addNoise(hdu, sigma_noise):
+    img = hdu[0].data
+    img += np.random.gauss(0, sigma_noise)
+    img += np.random.poisson(sigma_noise)
