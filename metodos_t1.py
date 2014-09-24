@@ -1,4 +1,4 @@
-__author__ = 'Sebastián'
+__author__ = 'Sebastian'
 
 def mToCounts(m, m0, F0):
     FF0 = (10 ** ((m0 - m)/2.5))
@@ -24,6 +24,7 @@ def addStar(hdu, m, ra, dec):
     ver, hor = radec_to_pixels(hdu[0].header, ra, dec)
     max_ver, max_hor = hdu[0].data.shape
     if 0 <= ver < max_ver and 0 <= hor < max_hor:
+	print ("added %d to %d, %d" %(count, ver, hor))
         hdu[0].data[ver][hor] = count
 
 
@@ -34,7 +35,9 @@ def addStellarCatalog(hdu, catalog):
         magnitude = data[3]
         ra = data[1]
         dec = data[2]
-        addStar(hdu, magnitude, ra, dec)
+        #print ("m= %s, ra= %s, dec=%s" %(magnitude, ra, dec))
+	#print star
+        addStar(hdu, float(magnitude), float(ra), float(dec))
 
 
 def addBackground(hdu, bg):

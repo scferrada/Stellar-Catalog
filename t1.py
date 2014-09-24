@@ -7,14 +7,14 @@ from flux20_lib import *
 
 
 f1 = "out/blank.fits"
-f2 = "res/stellar.dat"
+f2 = "res/stellar1.dat"
 hdu = pyfits.open(f1)
 metodos_t1.addStellarCatalog(hdu,f2)
 hdu.close()
 
 
 
-arch   = pyfits.open(f1, ignore_missing_end=True)
+arch   = pyfits.open(f1)
 hdr    = arch[0].header
 img    = arch[0].data
 
