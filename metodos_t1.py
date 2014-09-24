@@ -1,71 +1,33 @@
 __author__ = 'Sebastián'
 
-import pyfits
-
-ref_pix_ra = 0
-ref_pix_dec = 0
-ref_pix_hor = 0
-ref_pix_ver = 0
-delta_ra_col = 0
-delta_dec_col = 0
-delta_ra_row = 0
-delta_dec_row = 0
-
-flux20 = 0
-img = None
-
-'''
-Always should call this function before start adding stars from the catalog
-'''
-def init(filename):
-    global ref_pix_dec, ref_pix_hor, ref_pix_ra, ref_pix_ver
-    global delta_dec_col, delta_dec_row, delta_ra_col, delta_ra_row
-    global flux20, img
-    hdu = pyfits.open(filename)
-    hdr = hdu[0].header
-    img = hdu[0].data
-    flux20 = hdr['FLUX20']
-
-    ref_pix_hor = float(hdr['CRPIX1']) # Column Pixel Coordinate of Ref. Pixel
-    ref_pix_ver = float(hdr['CRPIX2']) # Row Pixel Coordinate of Ref. Pixel
-    ref_pix_ra = float(hdr['CRVAL1']) # RA at Reference Pixel
-    ref_pix_dec = float(hdr['CRVAL2']) # DEC at Reference Pixel
-
-    delta_ra_col = float(hdr['CD1_1'])  # RA  degrees per column pixel
-    delta_ra_row = float(hdr['CD1_2'])  # RA  degrees per row pixel
-    delta_dec_col = float(hdr['CD2_1'])  # DEC degrees per column pixel
-    delta_dec_row = float(hdr['CD2_2'])  # DEC degrees per row pixel
-
-
 def mToCounts(m, m0, F0):
     FF0 = (10 ** ((m0 - m)/2.5))
     counts = FF0 * (10 ** 8 * F0)
     return counts
 
 
-def radec_to_pixels(ra, dec):
-    diff_ra = ra - ref_pix_ra
-    diff_dec = dec - ref_pix_dec
+def radec_to_pixels(hdr, ra, dec):
+    diff_ra = ra - float(hdr['CRVAL1'])
+    diff_dec = dec - float(hdr['CRVAL2'])
 
-    diff_ver = (diff_dec/delta_dec_col - diff_ra/delta_ra_col)/(delta_dec_row/delta_dec_col - delta_ra_row/delta_ra_col)
-    diff_hor = (diff_dec/delta_dec_row - diff_ra/delta_ra_row)/(delta_dec_col/delta_dec_row - delta_ra_col/delta_ra_row)
+    diff_ver = (diff_dec/float(hdr['CD2_1']) - diff_ra/float(hdr['CD1_1']))/(float(hdr['CD2_2'])/float(hdr['CD2_1']) - float(hdr['CD1_2'])/float(hdr['CD1_1']))
+    diff_hor = (diff_dec/float(hdr['CD2_2']) - diff_ra/float(hdr['CD1_2']))/(float(hdr['CD2_1'])/float(hdr['CD2_2']) - float(hdr['CD1_1'])/float(hdr['CD1_2']))
 
-    calc_ver = ref_pix_ver + diff_ver
-    calc_hor = ref_pix_hor + diff_hor
+    calc_ver = float(hdr['CRPIX2']) + diff_ver
+    calc_hor = float(hdr['CRPIX1'])+ diff_hor
 
     return calc_ver, calc_hor
 
 
 def addStar(hdu, m, ra, dec):
-    count = mToCounts(m, 20, flux20)
-    ver, hor = radec_to_pixels(ra, dec)
-    max_ver, max_hor = img.shape
+    count = mToCounts(m, 20, hdu[0].header['FLUX20'])
+    ver, hor = radec_to_pixels(hdu[0].header, ra, dec)
+    max_ver, max_hor = hdu[0].data.shape
     if 0 <= ver < max_ver and 0 <= hor < max_hor:
-        img[ver][hor] = count
+        hdu[0].data[ver][hor] = count
 
 
 def addStellarCatalog(hdu, catalog):
-    init(hdu)
     stars = open(catalog, "r")
     for star in stars:
         data = star.split("\t")
@@ -76,7 +38,11 @@ def addStellarCatalog(hdu, catalog):
 
 
 def addBackground(hdu, bg):
-    max_ver, max_hor = img.shape
+    max_ver, max_hor = hdu[0].data.shape
+    img = hdu[0].data
     for ver in range(max_ver):
         for hor in range(max_hor):
             img[ver][hor] += bg
+
+def convolvePSF(hdu, sigma_psf):
+    psf = 0
