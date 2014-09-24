@@ -1,4 +1,4 @@
-__author__ = 'Sebastián'
+__author__ = 'Sebastian'
 
 import pyfits
 
@@ -17,11 +17,11 @@ img = None
 '''
 Always should call this function before start adding stars from the catalog
 '''
-def init(filename):
+def init(hdu):
     global ref_pix_dec, ref_pix_hor, ref_pix_ra, ref_pix_ver
     global delta_dec_col, delta_dec_row, delta_ra_col, delta_ra_row
     global flux20, img
-    hdu = pyfits.open(filename)
+    
     hdr = hdu[0].header
     img = hdu[0].data
     flux20 = hdr['FLUX20']
@@ -72,7 +72,8 @@ def addStellarCatalog(hdu, catalog):
         magnitude = data[3]
         ra = data[1]
         dec = data[2]
-        addStar(hdu, magnitude, ra, dec)
+        addStar(hdu, float(magnitude), float(ra), float(dec))
+	
 
 
 def addBackground(hdu, bg):
