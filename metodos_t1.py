@@ -1,6 +1,9 @@
+# -*- coding: cp1252 -*-
 __author__ = 'Sebastian'
 
 import numpy as np
+from random import gauss
+import math
 
 def mToCounts(m, m0, F0):
     FF0 = (10 ** ((m0 - m)/2.5))
@@ -26,7 +29,7 @@ def addStar(hdu, m, ra, dec):
     ver, hor = radec_to_pixels(hdu[0].header, ra, dec)
     max_ver, max_hor = hdu[0].data.shape
     if 0 <= ver < max_ver and 0 <= hor < max_hor:
-        print ("added %d to %d, %d" % (count, ver, hor))
+        #print ("added %d to %d, %d" % (count, ver, hor))
         hdu[0].data[ver][hor] = count
         i = 1
 
@@ -54,5 +57,68 @@ def convolvePSF(hdu, sigma_psf):
 
 def addNoise(hdu, sigma_noise):
     img = hdu[0].data
-    img += np.random.gauss(0, sigma_noise)
+    val = gauss(0,sigma_noise)
+    print val
+    img += val
     img += np.random.poisson(sigma_noise)
+    return img
+
+def Gamma(x): # Gamma(x) = (x-1)!
+    return math.factorial(x-1)
+
+
+def addGalaxy(hdu, m, ra, dec, n, Re, el, tetha):
+    
+    
+    counts = mToCounts(m, 20,hdu[0].header['FLUX20'])
+    Ln = counts
+
+    bn = 2*n-0.324
+    Io = Ln*bn**(2*n)/( Re**2*2*math.pi*n*Gamma(2*n)*(1-el) )
+    
+
+    ver_c, hor_c = radec_to_pixels(hdu[0].header,ra, dec) 
+    max_ver, max_hor = hdu[0].data.shape
+    
+    # ver=ra     hor=dec
+    # ver=x      hor=y
+    
+    ver=-4*Re+ver_c
+    
+    while ver <= 4*Re+ver_c:
+        
+        hor = -4*Re+hor_c
+                
+        while hor <= 4*Re+hor_c:
+            
+            #print ver**2+hor**2<= (4*Re)**2
+            # if: el pixel esta dentro de la imagen y dentro de un circulo de r=4Ro
+            if 0 <= ver < max_ver and 0 <= hor < max_hor and ver**2+hor**2> (4*Re)**2:
+                Xi_cuad = ( (ver-ver_c)*math.cos(tetha)+(hor-hor_c)*math.sin(tetha) )**2+ ( ( (ver-ver_c)*math.sin(tetha)-(hor-hor_c)*math.cos(tetha) )/(1-el) )**2
+                #print Xi_cuad
+                Xi = math.sqrt(Xi_cuad)
+                #print Xi
+                countPix = Io*math.exp( -bn*(Xi/Re)**(1/n) )
+                #print countPix
+                hdu[0].data[ver][hor] = countPix
+                            
+            hor = hor+1
+            
+        ver = ver+1
+
+
+def addGalaxyCatalog(hdu, catalog):
+        galaxies = open(catalog, "r")
+        for galaxy in galaxies:
+            data = galaxy.split("\t")
+            ra        = data[1]
+            dec       = data[2]
+            magnitude = data[3]
+            SED       = data[4]
+            z         = data[5]
+            typ       = data[6]
+            n         = data[7]
+            Re        = data[8]
+            el        = data[9]
+            tetha     = data[10]
+            addGalaxy(hdu, float(magnitude), float(ra), float(dec), float(n), float(Re), float(el), float(tetha))

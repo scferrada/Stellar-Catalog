@@ -13,7 +13,7 @@ def plot_image(image,interpolation="nearest",log_scale=False,title=None):
 
     if log_scale:
        min_value = np.min(image)
-       if min_value <= 0: image2 = image + np.abs(min_value) + 10.0
+       if min_value <= 0: image2 = image + np.abs(float(min_value)) + 10.0
        else: image2 = image - min_value + 10.0
        plt.imshow(np.log(image2),interpolation=interpolation)
        plt.set_cmap('pink')
